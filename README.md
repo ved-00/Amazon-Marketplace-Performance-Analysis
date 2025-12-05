@@ -67,3 +67,12 @@ Shipped vs Unshipped vs Cancelled counts from logistics pipeline.
 
 9️⃣ Month-wise Purchases by City
 Demand distribution across cities for each month.
+
+
+
+📁 Dataset Information
+
+This project uses the Amazon Sale Report dataset, which includes detailed marketplace order records such as order dates, quantities, categories, shipping locations, courier statuses, and revenue amounts.
+
+Because the full dataset is fairly large (68 MB), GitHub cannot preview it directly.
+The complete dataset is uploaded as a ZIP file:
