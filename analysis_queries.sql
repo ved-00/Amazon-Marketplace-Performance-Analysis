@@ -150,3 +150,78 @@ FROM "Amazon"
 WHERE "Date" IS NOT NULL
 GROUP BY month, "ship-city"
 ORDER BY month ASC, total_orders DESC;
+
+
+/******************************************************************************************
+Cancellation Hotspots — by Category
+What it does:
+  - For each Category, reports total orders, cancelled orders and cancellation rate (pct).
+  - Use this to surface categories with unusually high cancellation rates.
+Notes:
+  - Adjust HAVING threshold (>50) if you want to include smaller categories.
+******************************************************************************************/
+SELECT
+  Category,
+  COUNT(DISTINCT "Order ID") AS total_orders,
+  COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%') AS cancelled_orders,
+  ROUND(
+    100.0 * COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%')
+    / NULLIF(COUNT(DISTINCT "Order ID"), 0),
+  2) AS cancel_rate_pct
+FROM "Amazon"
+WHERE Category IS NOT NULL
+GROUP BY Category
+HAVING COUNT(DISTINCT "Order ID") > 50
+ORDER BY cancel_rate_pct DESC
+LIMIT 50;
+
+
+/******************************************************************************************
+Cancellation Hotspots — by State
+What it does:
+  - For each ship-state, reports total orders, cancelled orders and cancellation rate (pct).
+  - Good for detecting regional operational problems.
+Notes:
+  - Adjust HAVING threshold (>200) to filter out low-volume states.
+******************************************************************************************/
+SELECT
+  "ship-state" AS state,
+  COUNT(DISTINCT "Order ID") AS total_orders,
+  COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%') AS cancelled_orders,
+  ROUND(
+    100.0 * COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%')
+    / NULLIF(COUNT(DISTINCT "Order ID"), 0),
+  2) AS cancel_rate_pct
+FROM "Amazon"
+WHERE "ship-state" IS NOT NULL
+GROUP BY "ship-state"
+HAVING COUNT(DISTINCT "Order ID") > 200
+ORDER BY cancel_rate_pct DESC
+LIMIT 50;
+
+
+/******************************************************************************************
+Return Rate — Category-wise
+What it does:
+  - For each Category, reports total orders, return-related orders and return rate (pct).
+  - Detect categories with high return behavior (quality / listing issues).
+Notes:
+  - This checks Status strings for common return/refund keywords; tweak patterns if needed.
+******************************************************************************************/
+SELECT
+  Category,
+  COUNT(DISTINCT "Order ID") AS total_orders,
+  COUNT(DISTINCT "Order ID") FILTER (
+    WHERE Status ILIKE '%return%' OR Status ILIKE '%refund%' OR Status ILIKE '%returned%'
+  ) AS return_orders,
+  ROUND(
+    100.0 * COUNT(DISTINCT "Order ID") FILTER (
+      WHERE Status ILIKE '%return%' OR Status ILIKE '%refund%' OR Status ILIKE '%returned%'
+    ) / NULLIF(COUNT(DISTINCT "Order ID"), 0),
+  2) AS return_rate_pct
+FROM "Amazon"
+WHERE Category IS NOT NULL
+GROUP BY Category
+HAVING COUNT(DISTINCT "Order ID") > 50
+ORDER BY return_rate_pct DESC
+LIMIT 50;
