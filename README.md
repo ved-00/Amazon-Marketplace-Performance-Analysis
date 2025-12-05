@@ -44,8 +44,8 @@ GitHub for version control & documentation
 Identified which product categories drive majority of GMV.
 Useful for assortment planning & merchandising strategy.
 
-2️⃣ Monthly Order Volume Trends
-Extracted order counts from March–June 2022 to detect seasonality & surges.
+2️⃣ Monthly Fulfillment Performance
+Tracks month-over-month delivery vs cancellation rates to detect recurring peak-load issues or fulfillment instability.
 
 3️⃣ Order Status Distribution
 Mapped orders across Shipped, Delivered, Cancelled, Pending, Returned, etc.
@@ -67,6 +67,21 @@ Shipped vs Unshipped vs Cancelled counts from logistics pipeline.
 
 9️⃣ Month-wise Purchases by City
 Demand distribution across cities for each month.
+
+🔟 Cancellation Hotspots — by Category
+Identifies product categories with unusually high cancellation rates to surface potential listing, sizing, or quality issues.
+
+1️⃣1️⃣ Cancellation Hotspots — by State
+Highlights regions with elevated cancellation patterns, useful for spotting courier bottlenecks or state-specific operational failures.
+
+1️⃣2️⃣ Category-wise Return Rate Analysis
+Breaks down return/refund rates across categories to pinpoint segments with potential product-quality gaps or expectation mismatches.
+
+1️⃣3️⃣ High-Defect SKUs (Cancellation-Driven)
+Ranks SKUs by defect/cancellation rate and revenue at risk to focus remediation on the highest-impact problem products.
+
+1️⃣5️⃣ Courier Status Performance
+Evaluates shipped, unshipped, and cancelled proportions per courier status bucket to reveal logistics-pipeline failure points.
 
 
 
