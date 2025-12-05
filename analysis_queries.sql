@@ -15,14 +15,24 @@ LIMIT 10;
 
 
 /******************************************************************************************
-2) Monthly Order Volume
-   - Extracts YYYY-MM from the Date column.
-   - Counts distinct orders placed each month.
+Monthly fulfillment performance
+- For each month, shows total orders, total units, delivered count, cancelled count,
+  delivery rate and cancellation rate.
 ******************************************************************************************/
-
 SELECT
   SUBSTRING("Date", 1, 7) AS month,
-  COUNT(DISTINCT "Order ID") AS orders
+  COUNT(DISTINCT "Order ID") AS total_orders,
+  SUM(REPLACE("Qty", '"', '')::numeric) AS total_units,
+  COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%deliver%') AS delivered,
+  COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%') AS cancelled,
+  ROUND(
+    100.0 * COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%deliver%')
+    / NULLIF(COUNT(DISTINCT "Order ID"), 0), 2
+  ) AS delivery_rate_pct,
+  ROUND(
+    100.0 * COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%')
+    / NULLIF(COUNT(DISTINCT "Order ID"), 0), 2
+  ) AS cancel_rate_pct
 FROM "Amazon"
 WHERE "Date" IS NOT NULL
 GROUP BY month
@@ -225,3 +235,49 @@ GROUP BY Category
 HAVING COUNT(DISTINCT "Order ID") > 50
 ORDER BY return_rate_pct DESC
 LIMIT 50;
+
+/******************************************************************************************
+SKUs with highest defect rates (cancellations)
+- Lists SKUs with high cancellation rates (defect candidates) and revenue at risk.
+- Filters out very low-volume SKUs to avoid noise.
+******************************************************************************************/
+SELECT
+  SKU,
+  Category,
+  COUNT(DISTINCT "Order ID") AS orders,
+  COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%') AS cancelled,
+  ROUND(
+    100.0 * COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%')
+    / NULLIF(COUNT(DISTINCT "Order ID"), 0), 2
+  ) AS defect_rate_pct,
+  SUM("Amount"::numeric) AS revenue_at_risk
+FROM "Amazon"
+WHERE SKU IS NOT NULL
+GROUP BY SKU, Category
+HAVING COUNT(DISTINCT "Order ID") > 10
+ORDER BY defect_rate_pct DESC, orders DESC
+LIMIT 20;
+
+/******************************************************************************************
+Courier / dispatch status performance
+- For each "courier status" bucket, reports order count, percent of total orders,
+  cancelled orders for that bucket, and the cancel_rate within the bucket.
+******************************************************************************************/
+SELECT
+  "courier status",
+  COUNT(DISTINCT "Order ID") AS orders,
+  ROUND(
+    100.0 * COUNT(DISTINCT "Order ID") / NULLIF((SELECT COUNT(DISTINCT "Order ID") FROM "Amazon"),0),
+    2
+  ) AS pct_of_total_orders,
+  COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%') AS cancelled_orders,
+  ROUND(
+    100.0 * COUNT(DISTINCT "Order ID") FILTER (WHERE Status ILIKE '%cancel%')
+    / NULLIF(COUNT(DISTINCT "Order ID"),0), 2
+  ) AS cancel_rate_pct_for_courier_status
+FROM "Amazon"
+WHERE "courier status" IS NOT NULL
+GROUP BY "courier status"
+ORDER BY orders DESC;
+
+
